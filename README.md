@@ -72,7 +72,7 @@ libidn-devel
     2. FTP账户配置(格式-用户名:密码:读写权限. 多个账户用分号分割)
         login_users=user1:pass1:RW;user2:pass2:RW
 
-##　运行
+## 运行
     1.切换到非root身份(目前以root身份运行会存在一些问题),编译过程会自动建立一个cos_ftp用户,因此可以直接使用该用户,通过root切到cos_ftp.(su cos_ftp)
     2. sh start.sh (会启动FTP进程和monitor程序,以及安装自动清理日志的脚本)
     3. 可使用FTP客户端连接server，进行文件的上传与下载
