@@ -1,5 +1,31 @@
 COS FTP V4 用于通过FTP协议往COS上传和下载文件.
 
+## 支持FTP命令
+
+- put
+
+- get
+
+- mput
+
+- mget
+
+- delete
+
+- mkdir
+
+- ls
+
+- cd
+
+- bye
+
+- quit
+
+- size
+
+  ​
+
 ## 适用COS版本
 ​	4.x 
 
