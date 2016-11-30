@@ -11,6 +11,12 @@ rm -f CMakeCache.txt
 cmake .
 make clean && make
 cd -
+mkdir -p ./data
+mkdir -p ./include
+mkdir -p ./lib
+mkdir -p ./log/ftp
+mkdir -p ./log/op
+mkdir -p ./log/sdk
 cp -a ./dep/cos-cpp-sdk/lib/* ./lib/
 rm -rf ./include/*
 cp -a ./dep/cos-cpp-sdk/include/* ./include/
