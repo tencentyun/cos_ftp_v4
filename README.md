@@ -1,5 +1,13 @@
 COS FTP V4 用于通过FTP协议往COS上传和下载文件.
 
+## 功能说明
+
+COS FTP v4是依赖COS 4.X的FTP服务端工具。通过COS FTP工具可以通过FTP协议从COS上传和下载文件。
+
+**上传机制**：上传先落地FTP的本地磁盘, 上传COS后删除，返回给客户端成功。（后期版本流式上传COS，不落本地磁盘）
+
+**下载机制**：下载直接流式返回给客户端
+
 ## 支持FTP命令
 
 - put
@@ -24,6 +32,8 @@ COS FTP V4 用于通过FTP协议往COS上传和下载文件.
 
 - size
 
+## 不支持FTP命令
+- append
   ​
 
 ## 适用COS版本
@@ -45,14 +55,9 @@ asio-devel
 libidn-devel
 ```
 
-## 编译
-
-1. 因为FTP需要使用本地磁盘，因此请将FTP源码程序放在一个存储空间较大的盘。(腾讯云初始的机器购买的数据盘需要手动格式化并挂载, 请参考 https://www.qcloud.com/doc/product/213/2974
-2. 以root身份运行build.sh(因为build.sh里会调用yum进行安装依赖库，推荐使用腾讯云主流的Centos系列系统，如果是其他系列系统，如ubuntu，请修改opbin/env_init.sh)
-
 ## 配置
 
-配置文件conf/vsftd.conf中的是vsftpd的配置,可以参考以下配置说明, 需要改动的主要是以下两模块
+配置文件conf/vsftpd.conf中的是vsftpd的相关配置,可以参考以下配置说明
 
 
     1. COS账户信息配置
@@ -63,19 +68,44 @@ libidn-devel
         # bucket信息，包括bucket的名字，以及bucket所在的区域。目前有效值华南广州(gz), 华东上海(sh), 华北天津(tj)
         cos_bucket=test                                                     
         cos_region=gz
-        # domain设置为cos表示通过COS源站下载(推荐服务器为腾讯云机器用户设置)
-        # domain设置为CDN表示通过CDN下载(推荐服务器为非腾讯云机器用户设置)
+        # domain设置为cos表示通过cos源站下载(推荐服务器为腾讯云机器用户设置)
+        # domain设置为cdn表示通过cdn下载(推荐服务器为非腾讯云机器用户设置)
         cos_download_domain=cos                                             
         # 此项不用设置, build.sh脚本会自动设置
         cos_user_home_dir=/home/test/cosftp_data/                                        
     
     2. FTP账户配置(格式-用户名:密码:读写权限. 多个账户用分号分割)
         login_users=user1:pass1:RW;user2:pass2:RW
+    
+    3. 外网IP设置, 把外网IP设置服务器的外网IP(仅针对通过外网IP访问FTP服务的用户，如客户机和FTP服务器均在腾讯云CVM机器上，通过内网IP访问，则不用设置)
+    	pasv_address=115.115.115.115
+    	
+    4. 控制端口与数据端口设置, 可以使用默认设置(建议端口在1025 ~ 65535， 并保证未被防火墙iptables过滤)
+    	listen_port=2121
+
+## 编译
+
+1.  因为FTP需要使用本地磁盘，因此请将FTP源码程序放在一个存储空间较大的盘。(腾讯云初始的机器购买的数据盘需要手动格式化并挂载, 请参考 https://www.qcloud.com/doc/product/213/2974
+2.  以**root身份运行build.sh(**因为build.sh里会调用yum进行安装依赖库，推荐使用腾讯云主流的Centos系列系统，如果是其他系列系统，如ubuntu，请修改opbin/env_init.sh)
 
 ## 运行
-    1.切换到非root身份(目前以root身份运行会存在一些问题),编译过程会自动建立一个cos_ftp用户,因此可以直接使用该用户,通过root切到cos_ftp.(su cos_ftp)
-    2. sh start.sh (会启动FTP进程和monitor程序,以及安装自动清理日志的脚本)
-    3. 可使用FTP客户端连接server，进行文件的上传与下载
+
+    1. 切换到cos_ftp账户(这个账户是在build.sh脚本里建立的), su cos_ftp
+    2. sh start.sh (会启动FTP进程和monitor程序,以及安装自动清理日志的CT脚本)
+    3. 使用FTP客户端连接server的控制端口(默认是2121)，为避免客户机限制端口，建议使用pasv模式连接。
+    可以先用服务器本机的FTP命令进行测试(此客户端程序可通过yum install ftp安装)。 通过执行FTP 127.0.0.1 2121来测试， 如果开启了pasv_address，则使用ftp连接外网地址的2121测试
+    4. 执行FTP的上传下载等命令
 
 ## 停止
-    运行 sh stop.sh
+```shell
+sh stop.sh
+```
+## 常见问题
+
+```
+1. 连接不上，请查看账户密码端口号，连接模式是否正确，以及服务器上进程是否起来(netstat -tulnp | grep vsftpd)
+2. 并发上传一个文件失败，FTP不支持并发上传文件，会对文件进行加锁，导致只有一个会成功。
+3. 上传文件过大，本地磁盘不足导致失败。通过FTP上传会先临时落FTP服务器磁盘(存放在FTP服务的data目录下)，然后上传COS，上传成功后会删除本地文件。下载不落本地，不受磁盘空间限制，因此建议把FTP服务部署在空间较大的分区上。
+4. 使用FileZilla等客户端上传大文件失败, 第一版本的FTP服务器不支持append模式，而FileZilla等客户端在上传一些大文件时，会通过append操作。
+5. 其他问题，请提供log目录的压缩包。
+```
