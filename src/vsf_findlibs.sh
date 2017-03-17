@@ -78,5 +78,8 @@ locate_library /usr/lib64/libboost_system.so && echo "-lboost_system";
 locate_library /usr/lib64/libboost_filesystem.so && echo "-lboost_filesystem";
 locate_library /usr/lib64/libboost_thread.so && echo "-lboost_thread";
 
+# liconv
+locate_library /usr/local/lib/libiconv.so && echo "-liconv";
+
 exit 0;
 
