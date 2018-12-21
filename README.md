@@ -1,5 +1,10 @@
 COS FTP V4 用于通过FTP协议往COS上传和下载文件.
 
+
+## 已弃用 - 请升级到 cos-ftp-server-V5
+
+工具依赖的 JSON API 已弃用，请直接使用基于 XML API 的 [cos-ftp-server-V5](https://github.com/tencentyun/cos-ftp-server-V5)。
+
 ## 功能说明
 
 COS FTP v4是依赖COS 4.X的FTP服务端工具。通过COS FTP工具可以通过FTP协议从COS上传和下载文件。
